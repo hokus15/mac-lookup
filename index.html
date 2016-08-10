@@ -23,7 +23,7 @@
 	<body id="top">
 		<div class="container-full text-center">
 			<div class="row">
-				<h2>HokusLAN MAC</h2>
+				<h2>MAC Lookup</h2>
 			</div>
 			<div class="row">
 				<form class="form-inline" role="form">
@@ -76,7 +76,7 @@
 			function showData(response) {
 				if (response.isError()) {
 					console.log('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
-					$.notify('Error de lectura' + response.getMessage() + ': ' + response.getDetailedMessage(), 'error');
+					$.notify('Error: ' + response.getMessage() + '. ' + response.getDetailedMessage(), 'error');
 					return;
 				}
 				var dataTable = response.getDataTable();
