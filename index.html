@@ -1,7 +1,103 @@
 <!DOCTYPE html>
-<html>
-<body>
-<h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages.</p>
-</body>
+<html lang="en">
+  <head>
+		<meta charset="iso-8859-2">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+		<title>HokusLAN MAC</title>
+
+		<!-- Bootstrap -->
+		<link rel="stylesheet" href="assets/css/hero.bootstrap.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+			<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+		<![endif]-->
+		<style>
+		</style>
+	</head>
+	<body id="top">
+		<div class="container-full text-center">
+			<div class="row">
+				<h2>HokusLAN MAC</h2>
+			</div>
+			<div class="row">
+				<form class="form-inline" role="form">
+				  <div class="form-group">
+					<input type="text" class="form-control" id="mac" name="mac" placeholder="MAC...">
+				  </div>
+					<button id="lookup" type="submit" class="btn btn-primary">Buscar</button>
+				</form>
+			</div>
+			<div class="row">
+				<h2>Dispositivo: <span id="device"></span></h2>
+				<h2>MAC: <span id="mac-address"></span></h2>
+				<h2>Nombre: <span id="name"></span></h2>
+				<h2>IP LAN: <span id="lan-ip"></span></h2>
+				<h2>Notas: <span id="notes"></span></h2>
+			</div>
+		</div>
+		<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<!-- Include all compiled plugins (below), or include individual files as needed -->
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+		<script src="assets/js/notify.min.js"></script>
+		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+		<script language="JavaScript" type="text/javascript">
+			google.load("visualization", "1", {packages:['corechart','bar','table','line']});
+
+			var spreadsheetId = '17LoPAfeJC7MNMfaLGab_kOleNDalslrPT9j_giZFG0A';
+			var spreadSheetUrl = 'https://docs.google.com/spreadsheets/d/' + spreadsheetId + '/gviz/tq?tq=';
+			
+			$('#lookup').on('click', function(event) {
+			  event.preventDefault();
+			  getData($('#mac').val().toLowerCase());
+			});
+			
+			function getData(mac) {
+				$('#device').html('');
+				$('#mac-address').html('');
+				$('#name').html('');
+				$('#lan-ip').html('');
+				$('#notes').html('');
+
+				var query = 'select A, B, C, D, E where C = \'' + mac + '\'';
+				var queryString = encodeURIComponent(query);
+				var macQuery = new google.visualization.Query(spreadSheetUrl + queryString);
+				macQuery.send(function (response) {
+					showData(response);
+				});
+			}
+			
+			function showData(response) {
+				if (response.isError()) {
+					console.log('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+					$.notify('Error de lectura' + response.getMessage() + ': ' + response.getDetailedMessage(), 'error');
+					return;
+				}
+				var dataTable = response.getDataTable();
+				if (dataTable.getNumberOfRows() == 1) {
+					var device = dataTable.getValue(0,1);
+					var macAddress = dataTable.getValue(0,2);
+					var name = dataTable.getValue(0,0);
+					var lanIP = dataTable.getValue(0,3);
+					var notes = dataTable.getValue(0,4);
+				
+					$('#device').html(device);
+					$('#mac-address').html(macAddress);
+					$('#name').html(name);
+					$('#lan-ip').html(lanIP);
+					$('#notes').html(notes);
+				} else if (dataTable.getNumberOfRows() == 0) {
+					$.notify('MAC desconocida', 'warn');
+				} else {
+					$.notify('Encontradas ' + dataTable.getNumberOfRows() + ' direcciones MAC', 'warn');
+				}
+			}
+		</script>
+	</body>
 </html>
