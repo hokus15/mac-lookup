@@ -45,19 +45,44 @@
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 		<!-- Include all compiled plugins (below), or include individual files as needed -->
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+		<script src="https://apis.google.com/js/auth.js?onload=init"></script>
 		<script src="assets/js/notify.min.js"></script>
 		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 		<script language="JavaScript" type="text/javascript">
 			google.load("visualization", "1", {packages:['corechart','bar','table','line']});
+
+			var clientId = '863376628185-02g8g8hoc446lgovpk4of5omihc0dh86.apps.googleusercontent.com';
+			var scopes = 'https://spreadsheets.google.com/feeds';
 
 			var spreadsheetId = '17LoPAfeJC7MNMfaLGab_kOleNDalslrPT9j_giZFG0A';
 			var spreadSheetUrl = 'https://docs.google.com/spreadsheets/d/' + spreadsheetId + '/gviz/tq?tq=';
 			
 			$('#lookup').on('click', function(event) {
 			  event.preventDefault();
-			  getData($('#mac').val().toLowerCase());
+			  init();
 			});
 			
+			function init() {
+			  gapi.auth.authorize(
+				  {client_id: clientId, scope: scopes, immediate: true},
+				  handleAuthResult);
+			}
+			
+			function handleAuthResult(authResult) {
+			  var authorizeButton = document.getElementById('lookup');
+			  if (authResult && !authResult.error) {
+				getData($('#mac').val().toLowerCase());
+			  } else {
+				authorizeButton.onclick = handleAuthClick;
+			  }
+			}
+
+			function handleAuthClick(event) {
+			  gapi.auth.authorize(
+				  {client_id: clientId, scope: scopes, immediate: false},
+				  handleAuthResult);
+			  return false;
+			}
 			function getData(mac) {
 				$('#device').html('');
 				$('#mac-address').html('');
@@ -67,7 +92,7 @@
 
 				var query = 'select A, B, C, D, E where C = \'' + mac + '\'';
 				var queryString = encodeURIComponent(query);
-				var macQuery = new google.visualization.Query(spreadSheetUrl + queryString);
+				var macQuery = new google.visualization.Query(spreadSheetUrl + queryString + '&access_token=' + encodeURIComponent(gapi.auth.getToken().access_token));
 				macQuery.send(function (response) {
 					showData(response);
 				});
